@@ -41,10 +41,9 @@ pdf_url = tag['content']
 print('CRAWLING >>> [{}]'.format(pdf_url))
 
 # access into pdf
-response_3 = urlopen(pdf_url)
-print(response_3.read())
-# # save to local disk
-# with open('PDF_1.pdf', 'wb') as f:
-#     f.write(response_3)
+response_3 = requests.get(pdf_url)
+# save to local disk
+with open('PDF_1.pdf', 'wb') as f:
+    f.write(response_3.content)
 
 
