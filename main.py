@@ -1,7 +1,19 @@
 import requests
+import re
+import codecs
 from bs4 import BeautifulSoup
 from urllib.parse import unquote
 from urllib.request import urlopen
+import bibtexparser
+
+
+with codecs.open('C://Users//YH//Desktop//scopus.bib', 'r', errors='replace', encoding='utf-8') as bib_file:
+    count = 1
+    for line in bib_file:
+        if line[0:3] == 'doi':
+            doi = re.sub('[{},]', '', line[4:])
+            print(count, doi)
+            count += 1
 
 
 # return redirected address if they redirect
@@ -18,41 +30,41 @@ def check_redirect(url_to_go):
         print("Request was not redirected")
         return None
 
+
 def search_save_pdf(doi, save_dir):
+    # From DOI to redirected website to crawl the sci direct url
+    doi_head = 'http://doi.org/'
+    doi = '10.1016/j.watres.2018.01.037'
+    url = doi_head + doi
+    print('CRAWLING >>> [{}]'.format(url))
+    response_1 = requests.get(url)
+    response_in_text = response_1.text
+    soup_1 = BeautifulSoup(response_in_text, 'lxml')
+    tag = soup_1.find('input', attrs={'name': 'redirectURL'})
+    # unquote convert the unwanted symbol to url symbol
+    sci_dir_url = unquote(tag['value'])
+    print('CRAWLING >>> [{}]'.format(sci_dir_url))
 
-# From DOI to redirected website to crawl the sci direct url
-doi_head = 'http://doi.org/'
-doi = '10.1016/j.watres.2018.01.037'
-url = doi_head + doi
-print('CRAWLING >>> [{}]'.format(url))
-response_1 = requests.get(url)
-response_in_text = response_1.text
-soup_1 = BeautifulSoup(response_in_text, 'lxml')
-tag = soup_1.find('input', attrs={'name': 'redirectURL'})
-# unquote convert the unwanted symbol to url symbol
-sci_dir_url = unquote(tag['value'])
-print('CRAWLING >>> [{}]'.format(sci_dir_url))
+    # from the sci direct url crawl the pdf file
+    response_2 = requests.get(sci_dir_url)
+    response_in_text = response_2.text
+    soup_2 = BeautifulSoup(response_in_text, 'lxml')
+    tag = soup_2.find('meta', attrs={'name': 'citation_pdf_url'})
+    pdf_url = tag['content']
+    print('CRAWLING >>> [{}]'.format(pdf_url))
 
-# from the sci direct url crawl the pdf file
-response_2 = requests.get(sci_dir_url)
-response_in_text = response_2.text
-soup_2 = BeautifulSoup(response_in_text, 'lxml')
-tag = soup_2.find('meta', attrs={'name': 'citation_pdf_url'})
-pdf_url = tag['content']
-print('CRAWLING >>> [{}]'.format(pdf_url))
+    # crawl secure pdf link
+    response_3 = requests.get(pdf_url)
+    response_in_text = response_3.text
+    soup_3 = BeautifulSoup(response_in_text, 'lxml')
+    tag = soup_3.find('a')
+    pdf_url_secure = tag['href']
+    print('SAVING >>> [{}]'.format(pdf_url_secure))
 
-# crawl secure pdf link
-response_3 = requests.get(pdf_url)
-response_in_text = response_3.text
-soup_3 = BeautifulSoup(response_in_text, 'lxml')
-tag = soup_3.find('a')
-pdf_url_secure = tag['href']
-print('SAVING >>> [{}]'.format(pdf_url_secure))
-
-# access into pdf and save
-response_3 = requests.get(pdf_url_secure)
-# save to local disk
-with open('PDF_1.pdf', 'wb') as f:
-    f.write(response_3.content)
+    # access into pdf and save
+    response_3 = requests.get(pdf_url_secure)
+    # save to local disk
+    with open('PDF_1.pdf', 'wb') as f:
+        f.write(response_3.content)
 
 
