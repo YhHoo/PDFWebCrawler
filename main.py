@@ -5,7 +5,7 @@ from pandas import DataFrame, read_csv
 from bs4 import BeautifulSoup
 from urllib.parse import unquote
 from urllib.request import urlopen
-import bibtexparser
+
 
 # l = ['asd', 'sda', 'shd']
 # df = DataFrame(data=l)
@@ -53,9 +53,9 @@ def search_save_pdf(doi, save_dir=None):
     # from the sci direct url crawl the pdf file
     response_2 = requests.get(sci_dir_url)
     response_in_text = response_2.text
-    print(response_in_text)
     soup_2 = BeautifulSoup(response_in_text, 'lxml')
     tag = soup_2.find('meta', attrs={'name': 'citation_pdf_url'})
+    # Type Error will rise when the pdf need to purchase
     pdf_url = tag['content']
     print('CRAWLING >>> [{}]'.format(pdf_url))
 
